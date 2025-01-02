@@ -9,16 +9,16 @@ namespace ColorsTableNew.Models
         public int ColorID { get; set; }
 
         [DisplayName("Color Name")]
-        [Required]
+        [Required(ErrorMessage ="Color Name is required")]
         public string ColorName { get; set; } = "";
 
         [DisplayName("Price")]
-        [Required]
+        [Required(ErrorMessage = "Price is required")]
         public decimal Price { get; set; } = 0.0m;
 
 
         [DisplayName("Order")]
-        [Required]
+        [Required(ErrorMessage = "Order is required")]
         public int DisplayOrder { get; set; } = 1;
 
         [DisplayName("In Stock?")]

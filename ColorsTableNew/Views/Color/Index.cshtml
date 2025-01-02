@@ -28,26 +28,6 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.DisplayOrder)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ColorName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Price)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsInStock)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ColorID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ColorID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ColorID">Delete</a>
-            </td>
-        </tr>
-}
+        @await Html.PartialAsync("_ColorTable", Model)
     </tbody>
 </table>
