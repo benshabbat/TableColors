@@ -7,7 +7,7 @@
 <h1 class="text-center">Table Colors</h1>
 
 <p>
-    <a asp-action="Create" class="btn btn-success text-white">Add Color</a>
+    <a onclick="showInPopUp('@Url.Action("Create","Color",null,Context.Request.Scheme)', 'Add Color')" class="btn btn-success text-white">Add Color</a>
 </p>
 <table class="table">
     <thead>
