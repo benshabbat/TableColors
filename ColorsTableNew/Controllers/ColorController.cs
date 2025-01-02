@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ColorsTableNew.Models;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ColorsTableNew.Controllers
 {
@@ -24,29 +27,42 @@ namespace ColorsTableNew.Controllers
             return View(await _context.Colors.ToListAsync());
         }
 
+        // For AJAX table refresh
+        public async Task<IActionResult> GetColorTable()
+        {
+            var colors = await _context.Colors.ToListAsync();
+            return PartialView("_ColorTable", colors);
+        }
+
         // GET: Color/Create
         public IActionResult Create()
         {
-            return View();
+            var model = new ColorModel(); // Initialize with default values
+            return PartialView("_CreateEdit", model);
         }
 
-        // POST: Color/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ColorID,ColorName,Price,DisplayOrder,IsInStock")] ColorModel colorModel)
         {
-            if (ModelState.IsValid)
+            try
             {
-                _context.Add(colorModel);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                if (ModelState.IsValid)
+                {
+                    _context.Add(colorModel);
+                    await _context.SaveChangesAsync();
+                    var colors = await _context.Colors.ToListAsync();
+                    return Json(new { isValid = true, html = await this.RenderViewAsync("_ColorTable", colors, true) });
+                }
             }
-            return View(colorModel);
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "An error occurred while saving: " + ex.Message);
+            }
+
+            return Json(new { isValid = false, html = await this.RenderViewAsync("_CreateEdit", colorModel, true) });
         }
 
-        // GET: Color/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -59,12 +75,9 @@ namespace ColorsTableNew.Controllers
             {
                 return NotFound();
             }
-            return View(colorModel);
+            return PartialView("_CreateEdit", colorModel);
         }
 
-        // POST: Color/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ColorID,ColorName,Price,DisplayOrder,IsInStock")] ColorModel colorModel)
@@ -80,6 +93,8 @@ namespace ColorsTableNew.Controllers
                 {
                     _context.Update(colorModel);
                     await _context.SaveChangesAsync();
+                    var colors = await _context.Colors.ToListAsync();
+                    return Json(new { isValid = true, html = await this.RenderViewAsync("_ColorTable", colors, true) });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -87,14 +102,10 @@ namespace ColorsTableNew.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+                    throw;
                 }
-                return RedirectToAction(nameof(Index));
             }
-            return View(colorModel);
+            return Json(new { isValid = false, html = await this.RenderViewAsync("_CreateEdit", colorModel, true) });
         }
 
         // GET: Color/Delete/5
@@ -105,18 +116,16 @@ namespace ColorsTableNew.Controllers
                 return NotFound();
             }
 
-            var colorModel = await _context.Colors
-                .FirstOrDefaultAsync(m => m.ColorID == id);
+            var colorModel = await _context.Colors.FirstOrDefaultAsync(m => m.ColorID == id);
             if (colorModel == null)
             {
                 return NotFound();
             }
 
-            return View(colorModel);
+            return PartialView("_Delete", colorModel);
         }
 
-        // POST: Color/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
@@ -124,15 +133,86 @@ namespace ColorsTableNew.Controllers
             if (colorModel != null)
             {
                 _context.Colors.Remove(colorModel);
+                await _context.SaveChangesAsync();
             }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            var colors = await _context.Colors.ToListAsync();
+            return Json(new { isValid = true, html = await this.RenderViewAsync("_ColorTable", colors, true) });
         }
 
         private bool ColorModelExists(int id)
         {
             return _context.Colors.Any(e => e.ColorID == id);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateOrder([FromBody] List<OrderUpdateModel> items)
+        {
+            try
+            {
+                foreach (var item in items)
+                {
+                    var color = await _context.Colors.FindAsync(item.Id);
+                    if (color != null)
+                    {
+                        color.DisplayOrder = item.Order;
+                    }
+                }
+                await _context.SaveChangesAsync();
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public class OrderUpdateModel
+        {
+            public int Id { get; set; }
+            public int Order { get; set; }
+        }
     }
+
+    public static class ControllerExtensions
+    {
+        public static async Task<string> RenderViewAsync<TModel>(this Controller controller, string viewName, TModel model, bool partial = false)
+        {
+            ArgumentNullException.ThrowIfNull(controller);
+
+            if (string.IsNullOrEmpty(viewName))
+            {
+                viewName = controller.ControllerContext.ActionDescriptor.ActionName;
+            }
+
+            controller.ViewData.Model = model;
+
+            using var writer = new StringWriter();
+            var viewEngine = controller.HttpContext.RequestServices.GetRequiredService<ICompositeViewEngine>();
+
+            if (viewEngine == null)
+            {
+                throw new InvalidOperationException("ICompositeViewEngine service not found.");
+            }
+
+            var viewResult = viewEngine.FindView(controller.ControllerContext, viewName, !partial);
+
+            if (!viewResult.Success)
+            {
+                throw new InvalidOperationException($"A view with the name {viewName} could not be found");
+            }
+
+            var viewContext = new ViewContext(
+                controller.ControllerContext,
+                viewResult.View,
+                controller.ViewData,
+                controller.TempData,
+                writer,
+                new HtmlHelperOptions()
+            );
+
+            await viewResult.View.RenderAsync(viewContext);
+            return writer.ToString();
+        }
+    }
+
 }

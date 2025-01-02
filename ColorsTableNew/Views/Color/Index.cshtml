@@ -1,33 +1,35 @@
 ﻿@model IEnumerable<ColorsTableNew.Models.ColorModel>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Colors Table";
 }
 
-<h1 class="text-center">Table Colors</h1>
+<div class="container">
+    <h1 class="text-center">Colors Table</h1>
 
-<p>
-    <a onclick="showInPopUp('@Url.Action("Create","Color",null,Context.Request.Scheme)', 'Add Color')" class="btn btn-success text-white">Add Color</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.DisplayOrder)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ColorName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsInStock)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @await Html.PartialAsync("_ColorTable", Model)
-    </tbody>
-</table>
+    <p>
+        <a onclick="showInPopUp('@Url.Action("Create","Color",null,Context.Request.Scheme)','Add New Color')"
+           class="btn btn-success">Add New Color</a>
+    </p>
+
+    <div id="view-all">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.DisplayOrder)</th>
+                    <th>@Html.DisplayNameFor(model => model.ColorName)</th>
+                    <th>@Html.DisplayNameFor(model => model.Price)</th>
+                    <th>@Html.DisplayNameFor(model => model.IsInStock)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @await Html.PartialAsync("_ColorTable", Model)
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/notify.js/0.4.2/notify.min.js"></script>
+}

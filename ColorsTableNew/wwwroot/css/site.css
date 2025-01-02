@@ -1,5 +1,7 @@
 html {
   font-size: 14px;
+    position: relative;
+    min-height: 100%;
 }
 
 @media (min-width: 768px) {
@@ -12,11 +14,28 @@ html {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
-}
+
 
 body {
   margin-bottom: 60px;
+}
+
+.handle {
+    cursor: move;
+    padding: 5px;
+    color: #666;
+}
+
+.handle:hover {
+        color: #333;
+ }
+
+.ui-sortable-helper {
+    display: table;
+    background: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.sortable-row.ui-sortable-helper {
+    opacity: 0.9;
 }

@@ -1,10 +1,11 @@
 ﻿@model IEnumerable<ColorsTableNew.Models.ColorModel>
 
-@foreach (var item in Model)
+@foreach (var item in Model.OrderBy(m => m.DisplayOrder))
 {
-    <tr>
+    <tr data-id="@item.ColorID" class="sortable-row">
         <td>
-            @Html.DisplayFor(modelItem => item.DisplayOrder)
+            <i class="fas fa-grip-vertical handle" style="cursor: move;"></i>
+            <span class="display-order">@item.DisplayOrder</span>
         </td>
         <td>
             @Html.DisplayFor(modelItem => item.ColorName)
@@ -13,11 +14,20 @@
             @Html.DisplayFor(modelItem => item.Price)
         </td>
         <td>
-            @Html.DisplayFor(modelItem => item.IsInStock)
+            @(item.IsInStock ? "Yes" : "No")
         </td>
         <td>
-            <a asp-action="Edit" asp-route-id="@item.ColorID">Edit</a> |
-            <a asp-action="Delete" asp-route-id="@item.ColorID">Delete</a>
+            <div class="btn-group" role="group">
+                <a onclick="showInPopUp('@Url.Action("Edit", "Color", new {id=item.ColorID}, Context.Request.Scheme)', 'Edit Color')"
+                   class="btn btn-primary btn-sm">
+                    <i class="fa fa-pencil"></i> Edit
+                </a>
+                <form asp-action="Delete" asp-route-id="@item.ColorID" onsubmit="return jQueryAjaxDelete(this, @item.ColorID)" class="d-inline">
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="fa fa-trash"></i> Delete
+                    </button>
+                </form>
+            </div>
         </td>
     </tr>
 }

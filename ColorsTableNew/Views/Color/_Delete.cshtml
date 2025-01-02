@@ -1,0 +1,36 @@
+﻿@model ColorsTableNew.Models.ColorModel
+<form asp-action="DeleteConfirmed" asp-route-id="@Model.ColorID" onsubmit="return jQueryAjaxPost(this);">
+    <div class="alert alert-danger">
+        <h5>Are you sure you want to delete this color?</h5>
+    </div>
+    <dl class="row">
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.ColorName)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.ColorName)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.Price)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.Price)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.DisplayOrder)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.DisplayOrder)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.IsInStock)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.IsInStock)
+        </dd>
+    </dl>
+    <div class="form-group mt-3">
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+    </div>
+</form>
