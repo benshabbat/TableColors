@@ -24,24 +24,6 @@ namespace ColorsTableNew.Controllers
             return View(await _context.Colors.ToListAsync());
         }
 
-        // GET: Color/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var colorModel = await _context.Colors
-                .FirstOrDefaultAsync(m => m.ColorID == id);
-            if (colorModel == null)
-            {
-                return NotFound();
-            }
-
-            return View(colorModel);
-        }
-
         // GET: Color/Create
         public IActionResult Create()
         {
